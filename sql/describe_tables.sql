@@ -1,0 +1,26 @@
+USE OnlineComputerStore;
+
+SELECT 'SilverAndAbove' AS 'Table description';
+DESCRIBE SilverAndAbove;
+SELECT 'Customer' AS 'Table description';
+DESCRIBE Customer;
+SELECT 'StoredCard' AS 'Table description';
+DESCRIBE StoredCard;
+SELECT 'CreditCard' AS 'Table description';
+DESCRIBE CreditCard;
+SELECT 'ShippingAddress' AS 'Table description';
+DESCRIBE ShippingAddress;
+SELECT 'Cart' AS 'Table description';
+DESCRIBE Cart;
+SELECT 'AppearsIn' AS 'Table description';
+DESCRIBE AppearsIn;
+SELECT 'OfferProduct' AS 'Table description';
+DESCRIBE OfferProduct;
+SELECT 'Product' AS 'Table description';
+DESCRIBE Product;
+SELECT 'Computer' AS 'Table description';
+DESCRIBE Computer;
+SELECT 'Laptop' AS 'Table description';
+DESCRIBE Laptop;
+SELECT 'Printer' AS 'Table description';
+DESCRIBE Printer;

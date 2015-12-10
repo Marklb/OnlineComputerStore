@@ -1,0 +1,38 @@
+<!-- views/partials/header.ejs -->
+
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+
+        <div class="navbar-header">
+            <a class="navbar-brand" href="/">
+                Computer Store
+            </a>
+        </div>
+
+        <ul class="nav navbar-nav">
+            <li><a href="/">Home</a></li>
+        </ul>
+
+        <ul class="nav navbar-nav navbar-right">
+            <% if (isLoggedIn) { %>
+                <li><a href="/cart">Cart <span class="badge"><%= itemsInCart %></span></a></li>
+                <li>
+                    <div class="btn-group">
+                      <button type="button" class="btn btn-default dropdown-toggle navbar-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <%= email %> <span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li><a href="/account">Account</a></li>
+                        <li><a href="/cart">Cart</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="/logout">Logout</a></li>
+                      </ul>
+                    </div>
+                </li>
+            <% } else { %>
+                <li><a href="/login">Login</a></li>
+            <% } %>
+        </ul>
+
+    </div>
+</nav>

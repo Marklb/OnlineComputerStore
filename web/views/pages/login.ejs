@@ -1,0 +1,44 @@
+<!-- views/pages/login.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <% include ../partials/head %>
+</head>
+<body class="container-fluid">
+
+    <header>
+        <% include ../partials/header %>
+    </header>
+
+    <main>
+        <div class="container-fluid">
+            <% if(isLoggedIn){ %>
+
+            <% }else{ %>
+                <div class="row">
+                    <div class="col-sm-6 col-md-4 col-md-offset-4">
+                        <div class="">
+                            <span class="">Customer Login</span>
+                            <div class="well well-sm">
+                                <form class="" aaction="/login" method="POST">
+                                    <div class="form-group">
+                                        <input type="text" class="form-control" name="email" placeholder="Email" required autofocus>
+                                    </div>
+                                    <button class="btn btn-default btn-block" type="submit">Login</button>
+                                </form>
+                            </div>
+                            <a href="#" class="text-center new-account">Create an account </a>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        <div>
+    </main>
+
+    <footer>
+        <% include ../partials/footer %>
+    </footer>
+
+</body>
+</html>

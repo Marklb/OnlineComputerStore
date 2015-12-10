@@ -1,0 +1,38 @@
+<!-- views/partials/products_display.ejs -->
+
+<div class="panel panel-default">
+    <!-- Default panel contents -->
+    <div class="panel-heading">All Products</div>
+
+    <!-- Products Table -->
+    <table class="table table-bordered table-hover">
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th></th>
+        </tr>
+        <% products.forEach(function(product) { %>
+            <tr>
+                <td><%= product.pname %></td>
+                <td><%= product.description %></td>
+                <td>$<%= product.offer_price %></td>
+                <td><%= product.pquantity %></td>
+                <td>
+                    <form class="form-inline" action="/addToCart" method="POST">
+                        <!--
+                            Setting these inputs to hidden so I can have them sent in the POST protocol.
+                            ** Not the safest way of doing this since the values can still be seen in the
+                               pages source.
+                        -->
+                        <input type="text" class="form-control hidden" name="cid" value="<%= cid %>">
+                        <input type="text" class="form-control hidden" name="pid" value="<%= product.pid %>">
+                        <input type="text" class="form-control hidden" name="price" value="<%= product.offer_price %>">
+                        <button type="submit" class="btn btn-default pull-right">Add To Cart</button>
+                    </form>
+                </td>
+            </tr>
+        <% }); %>
+    </table>
+</div>

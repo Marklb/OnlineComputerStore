@@ -1,0 +1,12 @@
+<!-- views/partials/cart_display.ejs -->
+
+<table class="table table-hover">
+    <% cartData.forEach(function(item) { %>
+        <tr>
+            <td><%= item.pname %></td>
+            <td><%= item.description %></td>
+            <td>$<%= item.price_sold %></td>
+            <td>$<%= item.quantity_in_cart %></td>
+        </tr>
+    <% }); %>
+</table>
