@@ -1,0 +1,119 @@
+<!-- views/partials/add_product_form.ejs -->
+
+<div class="row">
+    <div class="col-sm-6 col-md-4 col-md-offset-4">
+        <div class="">
+            <span class="">New Product</span>
+            <div class="well well-sm">
+                <form class="" action="/add_product" method="POST">
+                    <!-- Product Type -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Product Type</div>
+                            <input type="text" class="form-control ptype-btn" name="ptype" placeholder="Product Type" required autofocus>
+                        </div>
+                    </div>
+                    <!-- Product Name -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Product Name</div>
+                            <input type="text" class="form-control" name="pname" placeholder="Product Name" required autofocus>
+                        </div>
+                    </div>
+                    <!-- Price -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Price $</div>
+                            <input type="text" class="form-control" name="pprice" placeholder="10.99" required>
+                        </div>
+                    </div>
+                    <!-- description -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Description</div>
+                            <input type="text" class="form-control" name="pdescription" placeholder="Description" required>
+                        </div>
+                    </div>
+                    <!-- Quantity -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Quantity</div>
+                            <input type="text" class="form-control" name="pquantity" placeholder="10" required>
+                        </div>
+                    </div>
+
+                    <!--
+                        Computer Extra Attributes
+                    -->
+                    <!-- CPU Type -->
+                    <div class="form-group computer-extra">
+                        <div class="input-group">
+                            <div class="input-group-addon">CPU Type</div>
+                            <input type="text" class="form-control" name="cpu_type" placeholder="i7">
+                        </div>
+                    </div>
+
+                    <!--
+                        Laptop Extra Attributes
+                    -->
+                    <!-- btype -->
+                    <div class="form-group computer-extra">
+                        <div class="input-group">
+                            <div class="input-group-addon">BType</div>
+                            <input type="text" class="form-control" name="cpu_type" placeholder="i7">
+                        </div>
+                    </div>
+                    <!-- weight -->
+                    <div class="form-group computer-extra">
+                        <div class="input-group">
+                            <div class="input-group-addon">Weight</div>
+                            <input type="text" class="form-control" name="cpu_type" placeholder="i7">
+                        </div>
+                    </div>
+
+                    <!--
+                        Printer Extra Attributes
+                    -->
+                    <!-- Printer Type -->
+                    <div class="form-group computer-extra">
+                        <div class="input-group">
+                            <div class="input-group-addon">Printer Type</div>
+                            <input type="text" class="form-control" name="cpu_type" placeholder="i7">
+                        </div>
+                    </div>
+                    <!-- Printer -->
+                    <div class="form-group computer-extra">
+                        <div class="input-group">
+                            <div class="input-group-addon">Printer</div>
+                            <input type="text" class="form-control" name="cpu_type" placeholder="i7">
+                        </div>
+                    </div>
+
+
+                    <button class="btn btn-default btn-block" type="submit">Add Product</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- <script>
+function checkType(pElem){
+    console.log(pElem.value);
+    if(pElem.value+'' == '1'){
+        $('.computer-extra').addClass('hidden');
+    }
+};
+$('.ptype-btn').click(function(e){
+    console.log($(this).value);
+    checkType($(this));
+});
+$('.ptype-btn').focusin(function() {
+   checkType($(this));
+});
+$('.ptype-btn').change(function() {
+    checkType($(this));
+});
+</script> -->

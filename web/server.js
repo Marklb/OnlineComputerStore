@@ -579,9 +579,9 @@ app.get('/cart', function(req, res){
 
 
 //==============================================================================
-// transaction history page
+// transactions history page
 //==============================================================================
-app.get('/transaction_history', function(req, res){
+app.get('/transactions_history', function(req, res){
   // Standard vars needed for each page.
   var loggedIn = isLoggedIn(req, res);
   var customer_cid = loggedIn ? getCidCookie(req) : "";
@@ -617,13 +617,22 @@ app.get('/transaction_history', function(req, res){
 
   Q.all([doQuery1(), doQuery2()]).then(function(results){
     conn.end();
+    console.log(results[0][0]);
 
-    res.render('pages/transaction_history', {
+    transactions_data = {};
+    for(var i = 0; i < results[0][0].length; i++){
+      if(!transactions_data[results[0][0][i].cart_id]){
+        transactions_data[results[0][0][i].cart_id] = [];
+      }
+      transactions_data[results[0][0][i].cart_id].push(results[0][0]);
+    }
+    console.log(transactions_data);
+    res.render('pages/transactions_history', {
       isLoggedIn: loggedIn,
       cid: customer_cid,
       email: customer_email,
       itemsInCart: results[1][0][0].num_items,
-      transactionsData: results[0][0]
+      transactionsData: transactions_data
     });
   });
 });
@@ -929,6 +938,64 @@ app.post('/complete_transaction', function(req, res){
 });
 
 
+//==============================================================================
+// add product page
+//==============================================================================
+app.get('/add_product', function(req, res){
+  // Standard vars needed for each page.
+  var loggedIn = isLoggedIn(req, res);
+  var customer_cid = loggedIn ? getCidCookie(req) : "";
+  var customer_email = loggedIn ? getEmailCookie(req) : "";
+
+  var conn = createDBConnection();
+  // Get number of items in cart query
+  function doQuery1(){
+    var defered = Q.defer();
+    var query_statement = 'SELECT COUNT(*) AS `num_items` '+
+                          'FROM `Cart` AS C, `AppearsIn` AS A '+
+                          'WHERE C.cart_id = A.cart_id AND '+
+                                'C.cid = ? AND C.tstatus = 0';
+    conn.query(query_statement, [customer_cid], defered.makeNodeResolver());
+    return defered.promise;
+  };
+
+  Q.all([doQuery1()]).then(function(results){
+    conn.end();
+
+    res.render('pages/add_product', {
+      isLoggedIn: loggedIn,
+      cid: customer_cid,
+      email: customer_email,
+      itemsInCart: results[0][0][0].num_items
+    });
+  })
+
+
+});
+
+app.post('/add_product', function(req, res){
+  var ptype = req.body.ptype;
+  var pname = req.body.pname;
+  var pprice = req.body.pprice;
+  var description = req.body.pdescription;
+  var pquantity = req.body.pquantity;
+
+  var conn = createDBConnection();
+  var query_statement = 'INSERT INTO `Product` '+
+                        '(`ptype`, `pname`, `pprice`, `description`, `pquantity`) '+
+                        'VALUES (?, ?, ?, ?, ?) ';
+  var values = [ptype, pname, pprice, description, pquantity];
+  conn.query(query_statement, values, function(err, rows, fields){
+    conn.end();
+    if(err){
+      console.log(err);
+      res.redirect('/add_product');
+    }else{
+      res.redirect('/');
+    }
+  });
+
+});
 
 
 //==============================================================================
