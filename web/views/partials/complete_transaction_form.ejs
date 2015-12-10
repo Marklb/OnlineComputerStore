@@ -1,0 +1,58 @@
+<!-- views/partials/complete_transaction_form.ejs -->
+
+<div class="row">
+    <div class="col-sm-6 col-md-4 col-md-offset-4">
+        <div class="">
+            <span class="">Complete Transaction</span>
+            <div class="well well-sm">
+                <form class="" action="/complete_transaction" method="POST">
+                    <input class="hidden" name="cid" value="<%= cid %>">
+                    <!-- Items in the cart -->
+                    <input class="hidden" name="cart_id" value="<%= cartData[0].cart_id %>">
+                    <table class="table table-bordered table-hover">
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                        </tr>
+                            <% total_price = 0 %>
+                            <% cartData.forEach(function(item) { %>
+                                <% total_price += parseFloat(item.price_sold)*parseInt(item.quantity_in_cart) %>
+                                <tr>
+                                    <td><%= item.pname %></td>
+                                    <td><%= item.description %></td>
+                                    <td>$<%= (parseFloat(item.price_sold)*parseInt(item.quantity_in_cart)).toFixed(2) %></td>
+                                    <td><%= item.quantity_in_cart %></td>
+                                </tr>
+                            <% }); %>
+                            <tr>
+                                <td></td>
+                                <td>Total:</td>
+                                <td>$<%= total_price.toFixed(2) %></td>
+                            </tr>
+                    </table>
+
+                    <!-- Select a credit card -->
+                    <h4>Credit Card</h4>
+                    <select class="form-control" name="ccnumber">
+                        <% storedCards.forEach(function(card) { %>
+                            <option value="<%= card.ccnumber %>"><%= card.ccnumber %></option>
+                        <% }); %>
+                    </select>
+
+                    <!-- Select a Shipping Address -->
+                    <h4>Shipping Address</h4>
+                    <select class="form-control" name="sa_name">
+                        <% storedShippingAddressesData.forEach(function(addr) { %>
+                            <option value="<%= addr.sa_name %>"><%= addr.sa_name %></option>
+                        <% }); %>
+                    </select>
+
+                    <!-- Complete Transaction -->
+                    <button class="btn btn-default btn-block" type="submit">Complete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

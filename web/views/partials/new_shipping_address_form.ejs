@@ -1,0 +1,71 @@
+<!-- views/partials/new_shipping_address_form.ejs -->
+
+<div class="row">
+    <div class="col-sm-6 col-md-4 col-md-offset-4">
+        <div class="">
+            <span class="">New Shipping Address</span>
+            <div class="well well-sm">
+                <form class="" action="/new_shipping_address" method="POST">
+                    <input type="text" class="form-control hidden" name="cid" value="<%= cid %>">
+                    <!-- Shipping Address Name -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Shipping Address Name</div>
+                            <input type="text" class="form-control" name="sa_name" placeholder="Home" required autofocus>
+                        </div>
+                    </div>
+                    <!-- Recepient Name -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Recepient Name</div>
+                            <input type="text" class="form-control" name="recepient_name" placeholder="John Doe" required autofocus>
+                        </div>
+                    </div>
+                    <!-- Street -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Street</div>
+                            <input type="text" class="form-control" name="street" placeholder="1st Street" required>
+                        </div>
+                    </div>
+                    <!-- Street Number -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Street Number</div>
+                            <input type="text" class="form-control" name="snumber" placeholder="184" required>
+                        </div>
+                    </div>
+                    <!-- City -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">City</div>
+                            <input type="text" class="form-control" name="city" placeholder="Newark" required>
+                        </div>
+                    </div>
+                    <!-- Zipcode -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Zipcode</div>
+                            <input type="text" class="form-control" name="zip" placeholder="07107" required>
+                        </div>
+                    </div>
+                    <!-- State -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">State</div>
+                            <input type="text" class="form-control" name="state" placeholder="NJ" required>
+                        </div>
+                    </div>
+                    <!-- Country -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Country</div>
+                            <input type="text" class="form-control" name="country" placeholder="United States" required>
+                        </div>
+                    </div>
+                    <button class="btn btn-default btn-block" type="submit">Add Address</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

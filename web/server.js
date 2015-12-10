@@ -183,7 +183,6 @@ app.post('/addToCart', function(req, res){
                  'WHERE `tstatus` = 0 AND `cid` = ?';
   conn.query(query_st, [cid], function(err, rows, fields){
     if (err) throw err;
-    // conn.end();
 
     console.log(rows);
     if(rows.length > 0){
@@ -549,7 +548,8 @@ app.get('/cart', function(req, res){
                           'WHERE C.cid = (SELECT `cid` '+
                                          'FROM `Customer` '+
                                          'WHERE `email` = ?) '+
-                          'AND C.cart_id = A.cart_id AND P.pid = A.pid';
+                          'AND C.cart_id = A.cart_id AND P.pid = A.pid '+
+                          'AND `tstatus` = 0';
     conn.query(query_statement, [customer_email], defered.makeNodeResolver());
     return defered.promise;
   };
@@ -573,6 +573,57 @@ app.get('/cart', function(req, res){
       email: customer_email,
       itemsInCart: results[1][0][0].num_items,
       cartData: results[0][0]
+    });
+  });
+});
+
+
+//==============================================================================
+// transaction history page
+//==============================================================================
+app.get('/transaction_history', function(req, res){
+  // Standard vars needed for each page.
+  var loggedIn = isLoggedIn(req, res);
+  var customer_cid = loggedIn ? getCidCookie(req) : "";
+  var customer_email = loggedIn ? getEmailCookie(req) : "";
+
+  var conn = createDBConnection();
+  // Get all the products in completed carts for customer query
+  function doQuery1(){
+    var defered = Q.defer();
+    var query_statement = 'SELECT C.cid AS cid, A.pid AS pid, '+
+                                 'C.cart_id AS cart_id, '+
+                                 'P.ptype AS ptype, P.pname AS pname, '+
+                                 'P.description AS description, '+
+                                 'A.price_sold AS price_sold, '+
+                                 'A.quantity AS quantity_in_cart '+
+                          'FROM `Cart` AS C, `AppearsIn` AS A, `Product` AS P '+
+                          'WHERE C.cid = ? '+
+                          'AND C.cart_id = A.cart_id AND P.pid = A.pid '+
+                          'AND `tstatus` > 0';
+    conn.query(query_statement, [customer_cid], defered.makeNodeResolver());
+    return defered.promise;
+  };
+  // Get number of items in cart query
+  function doQuery2(){
+    var defered = Q.defer();
+    var query_statement = 'SELECT COUNT(*) AS `num_items` '+
+                          'FROM `Cart` AS C, `AppearsIn` AS A '+
+                          'WHERE C.cart_id = A.cart_id AND '+
+                                'C.cid = ? AND C.tstatus = 0';
+    conn.query(query_statement, [customer_cid], defered.makeNodeResolver());
+    return defered.promise;
+  };
+
+  Q.all([doQuery1(), doQuery2()]).then(function(results){
+    conn.end();
+
+    res.render('pages/transaction_history', {
+      isLoggedIn: loggedIn,
+      cid: customer_cid,
+      email: customer_email,
+      itemsInCart: results[1][0][0].num_items,
+      transactionsData: results[0][0]
     });
   });
 });
@@ -620,6 +671,262 @@ app.post('/create_customer', function(req, res){
 });
 
 
+//==============================================================================
+// new credit card page
+//==============================================================================
+app.get('/new_credit_card', function(req, res){
+  // Standard vars needed for each page.
+  var loggedIn = isLoggedIn(req, res);
+  var customer_cid = loggedIn ? getCidCookie(req) : "";
+  var customer_email = loggedIn ? getEmailCookie(req) : "";
+
+  var conn = createDBConnection();
+  // Get number of items in cart query
+  function doQuery1(){
+    var defered = Q.defer();
+    var query_statement = 'SELECT COUNT(*) AS `num_items` '+
+                          'FROM `Cart` AS C, `AppearsIn` AS A '+
+                          'WHERE C.cart_id = A.cart_id AND '+
+                                'C.cid = ? AND C.tstatus = 0';
+    conn.query(query_statement, [customer_cid], defered.makeNodeResolver());
+    return defered.promise;
+  };
+
+  Q.all([doQuery1()]).then(function(results){
+    console.log(results[0][0]);
+    var num_items_in_cart = results[0][0][0].num_items;
+    console.log(num_items_in_cart);
+
+      // Render the new credit card view which contains the new credit card form.
+      res.render('pages/new_credit_card', {
+        isLoggedIn: loggedIn,
+        cid: customer_cid,
+        email: customer_email,
+        itemsInCart: num_items_in_cart
+      });
+    });
+
+});
+
+app.post('/new_credit_card', function(req, res){
+  var cid = req.body.cid;
+  var ccnumber = req.body.ccnumber;
+  var sec_number = req.body.sec_number;
+  var owner_name = req.body.owner_name;
+  var cctype = req.body.cctype;
+  var address = req.body.address;
+  var exp_date = req.body.exp_date.split('/');
+
+  console.log(cid);
+  console.log(ccnumber);
+  console.log(sec_number);
+  console.log(owner_name);
+  console.log(cctype);
+  console.log(address);
+  console.log(exp_date);
+
+  var conn = createDBConnection();
+  var query_statement = 'INSERT INTO `CreditCard` '+
+                        '(`ccnumber`, `sec_number`, `owner_name`, `cctype`, `ccaddress`, `exp_date`) '+
+                        'VALUES (?, ?, ?, ?, ?, ?)';
+  var values = [ccnumber, sec_number, owner_name, cctype, address, exp_date[1]+'-01-'+exp_date[0]];
+  conn.query(query_statement, values, function(err, rows, fields){
+    if(err){
+      console.log(err);
+      res.redirect('/account');
+    }else{
+      var query_statement = 'INSERT INTO `StoredCard` '+
+                            '(`ccnumber`, `cid`) '+
+                            'VALUES (?, ?)';
+      var values = [parseInt(ccnumber), cid];
+      conn.query(query_statement, values, function(err, rows, fields){
+        conn.end();
+        res.redirect('/account');
+      });
+    }
+  });
+
+});
+
+
+//==============================================================================
+// new shipping address page
+//==============================================================================
+app.get('/new_shipping_address', function(req, res){
+  // Standard vars needed for each page.
+  var loggedIn = isLoggedIn(req, res);
+  var customer_cid = loggedIn ? getCidCookie(req) : "";
+  var customer_email = loggedIn ? getEmailCookie(req) : "";
+
+  var conn = createDBConnection();
+  // Get number of items in cart query
+  function doQuery1(){
+    var defered = Q.defer();
+    var query_statement = 'SELECT COUNT(*) AS `num_items` '+
+                          'FROM `Cart` AS C, `AppearsIn` AS A '+
+                          'WHERE C.cart_id = A.cart_id AND '+
+                                'C.cid = ? AND C.tstatus = 0';
+    conn.query(query_statement, [customer_cid], defered.makeNodeResolver());
+    return defered.promise;
+  };
+
+  Q.all([doQuery1()]).then(function(results){
+    console.log(results[0][0]);
+    var num_items_in_cart = results[0][0][0].num_items;
+    console.log(num_items_in_cart);
+
+      // Render the new shipping address view
+      res.render('pages/new_shipping_address', {
+        isLoggedIn: loggedIn,
+        cid: customer_cid,
+        email: customer_email,
+        itemsInCart: num_items_in_cart
+      });
+    });
+
+});
+
+app.post('/new_shipping_address', function(req, res){
+  var cid = req.body.cid;
+  var sa_name = req.body.sa_name;
+  var recepient_name = req.body.recepient_name;
+  var street = req.body.street;
+  var snumber = req.body.snumber;
+  var city = req.body.city;
+  var zip = req.body.zip;
+  var state = req.body.state;
+  var country = req.body.country;
+
+  console.log(cid);
+  console.log(sa_name);
+  console.log(recepient_name);
+  console.log(street);
+  console.log(snumber);
+  console.log(city);
+  console.log(zip);
+  console.log(state);
+  console.log(country);
+
+  var conn = createDBConnection();
+  var query_statement = 'INSERT INTO `ShippingAddress` '+
+                        '(`cid`, `sa_name`, `recepient_name`, `street`, '+
+                         '`snumber`, `city`, `zip`, `state`, `country`) '+
+                        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+  var values = [cid, sa_name, recepient_name, street, snumber, city, zip, state,
+                country];
+  conn.query(query_statement, values, function(err, rows, fields){
+    if (err) throw err;
+
+    conn.end();
+    res.redirect('/account');
+  });
+
+});
+
+
+//==============================================================================
+// complete transaction page
+//==============================================================================
+app.get('/complete_transaction', function(req, res){
+  // Standard vars needed for each page.
+  var loggedIn = isLoggedIn(req, res);
+  var customer_cid = loggedIn ? getCidCookie(req) : "";
+  var customer_email = loggedIn ? getEmailCookie(req) : "";
+
+  var conn = createDBConnection();
+  // Get number of items in cart query
+  function doQuery1(){
+    var defered = Q.defer();
+    var query_statement = 'SELECT COUNT(*) AS `num_items` '+
+                          'FROM `Cart` AS C, `AppearsIn` AS A '+
+                          'WHERE C.cart_id = A.cart_id AND '+
+                                'C.cid = ? AND C.tstatus = 0';
+    conn.query(query_statement, [customer_cid], defered.makeNodeResolver());
+    return defered.promise;
+  };
+
+  // Get all the products in cart for customer query
+  function doQuery2(){
+    var defered = Q.defer();
+    var query_statement = 'SELECT C.cid AS cid, A.pid AS pid, '+
+                                 'C.cart_id AS cart_id, '+
+                                 'P.ptype AS ptype, P.pname AS pname, '+
+                                 'P.description AS description, '+
+                                 'A.price_sold AS price_sold, '+
+                                 'A.quantity AS quantity_in_cart '+
+                          'FROM `Cart` AS C, `AppearsIn` AS A, `Product` AS P '+
+                          'WHERE C.cid = (SELECT `cid` '+
+                                         'FROM `Customer` '+
+                                         'WHERE `email` = ?) '+
+                          'AND C.cart_id = A.cart_id AND P.pid = A.pid';
+    conn.query(query_statement, [customer_email], defered.makeNodeResolver());
+    return defered.promise;
+  };
+
+  // Get credit cards stored query
+  function doQuery3(){
+    var defered = Q.defer();
+    var query_st = 'SELECT S.cid AS cid, '+
+                          'C.ccnumber AS ccnumber, '+
+                          'C.sec_number AS sec_number, '+
+                          'C.owner_name AS owner_name, '+
+                          'C.cctype AS cctype, '+
+                          'C.ccaddress AS ccaddress, '+
+                          'C.exp_date AS exp_date '+
+                    'FROM `StoredCard` AS S, `CreditCard` AS C '+
+                    'WHERE C.ccnumber = S.ccnumber AND S.cid = ?';
+    conn.query(query_st, [customer_cid], defered.makeNodeResolver());
+    return defered.promise;
+  };
+
+  // Get shipping addresses query
+  function doQuery4(){
+    var defered = Q.defer();
+    var query_st = 'SELECT * FROM `ShippingAddress` WHERE `cid` = ?';
+    conn.query(query_st, [customer_cid], defered.makeNodeResolver());
+    return defered.promise;
+  };
+
+  Q.all([doQuery1(), doQuery2(), doQuery3(), doQuery4()]).then(function(results){
+    var num_items_in_cart = results[0][0][0].num_items;
+    var cart_data = results[1][0];
+    var stored_cards_data = results[2][0];
+    var stored_shipping_addresses_data = results[3][0];
+
+      // Render the complete transaction view
+      res.render('pages/complete_transaction', {
+        isLoggedIn: loggedIn,
+        cid: customer_cid,
+        email: customer_email,
+        itemsInCart: num_items_in_cart,
+        cartData: cart_data,
+        storedCards: stored_cards_data,
+        storedShippingAddressesData: stored_shipping_addresses_data
+      });
+    });
+
+});
+
+app.post('/complete_transaction', function(req, res){
+  var cid = req.body.cid;
+  var cart_id = req.body.cart_id;
+  var ccnumber = req.body.ccnumber;
+  var sa_name = req.body.sa_name;
+
+  var conn = createDBConnection();
+  var query_statement = 'UPDATE `Cart` '+
+                        'SET `sa_name` = ?, `ccnumber` = ?, '+
+                            '`tstatus` = 1, `tdate` = now() '+
+                        'WHERE `cart_id` = ? AND `cid` = ?';
+  var values = [sa_name, ccnumber, cart_id, cid];
+  conn.query(query_statement, values, function(err, rows, fields){
+    if (err) throw err;
+
+    conn.end();
+    res.redirect('/account');
+  });
+
+});
 
 
 

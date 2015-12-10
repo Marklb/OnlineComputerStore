@@ -89,6 +89,12 @@
             </div>
         </div>
         <% }); %>
+        <div class="pull-right">
+            <form class="" action="/new_credit_card" method="GET">
+                <input type="text" class="form-control hidden" name="cid" value="<%= cid %>">
+                <button class="btn btn-default btn-block btn-sm" type="submit">Add</button>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -117,5 +123,11 @@
             </div>
         </div>
         <% }); %>
+        <div class="pull-right">
+            <form class="" action="/new_shipping_address" method="GET">
+                <input type="text" class="form-control hidden" name="cid" value="<%= cid %>">
+                <button class="btn btn-default btn-block btn-sm" type="submit">Add</button>
+            </form>
+        </div>
     </div>
 </div>

@@ -1,0 +1,57 @@
+<!-- views/partials/new_credit_card_form.ejs -->
+
+<div class="row">
+    <div class="col-sm-6 col-md-4 col-md-offset-4">
+        <div class="">
+            <span class="">New Credit Card</span>
+            <div class="well well-sm">
+                <form class="" action="/new_credit_card" method="POST">
+                    <input type="text" class="form-control hidden" name="cid" value="<%= cid %>">
+                    <!-- Card Number -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Card Number</div>
+                            <input type="text" class="form-control" name="ccnumber" placeholder="5555555555555555" required autofocus>
+                        </div>
+                    </div>
+                    <!-- Security Number -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Security Number</div>
+                            <input type="text" class="form-control" name="sec_number" placeholder="SEC" required autofocus>
+                        </div>
+                    </div>
+                    <!-- Owner Name -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Owner name</div>
+                            <input type="text" class="form-control" name="owner_name" placeholder="Owner Name" required>
+                        </div>
+                    </div>
+                    <!-- Type -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Card Type</div>
+                            <input type="text" class="form-control" name="cctype" placeholder="Card Type" required>
+                        </div>
+                    </div>
+                    <!-- Address -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Address</div>
+                            <input type="text" class="form-control" name="address" placeholder="Address" required>
+                        </div>
+                    </div>
+                    <!-- Expiration Date -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Expire Date</div>
+                            <input type="text" class="form-control" name="exp_date" placeholder="01/2017" required>
+                        </div>
+                    </div>
+                    <button class="btn btn-default btn-block" type="submit">Add Card</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

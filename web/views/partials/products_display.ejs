@@ -11,7 +11,9 @@
             <th>Description</th>
             <th>Price</th>
             <th>Quantity</th>
+            <% if(isLoggedIn){ %>
             <th></th>
+            <% } %>
         </tr>
         <% prod_i = 0 %>
         <% products.forEach(function(product) { %>
@@ -33,35 +35,37 @@
                 </td>
                 <td>$<%= product.offer_price %></td>
                 <td><%= product.pquantity %></td>
-                <td>
-                    <form class="form-inline" action="/addToCart" method="POST">
-                        <!--
-                            Setting these inputs to hidden so I can have them sent in the POST protocol.
-                            ** Not the safest way of doing this since the values can still be seen in the
-                               pages source.
-                        -->
-                        <input type="text" class="form-control hidden" name="cid" value="<%= cid %>">
-                        <input type="text" class="form-control hidden" name="pid" value="<%= product.pid %>">
-                        <input type="text" class="form-control hidden" name="price" value="<%= product.offer_price %>">
+                <% if(isLoggedIn){ %>
+                    <td>
+                        <form class="form-inline" action="/addToCart" method="POST">
+                            <!--
+                                Setting these inputs to hidden so I can have them sent in the POST protocol.
+                                ** Not the safest way of doing this since the values can still be seen in the
+                                   pages source.
+                            -->
+                            <input type="text" class="form-control hidden" name="cid" value="<%= cid %>">
+                            <input type="text" class="form-control hidden" name="pid" value="<%= product.pid %>">
+                            <input type="text" class="form-control hidden" name="price" value="<%= product.offer_price %>">
 
-                        <div class=pull-right>
-                            <div class="input-group">
-                                <span class="input-group-btn">
-                                    <button type="button" class="btn btn-default btn-pm-number" disabled="disabled" data-type="minus" data-field="quant[<%= prod_i %>]">
-                                        <span class="glyphicon glyphicon-minus"></span>
-                                    </button>
-                                </span>
-                                <input type="text" name="quantity_to_add" data-name="quant[<%= prod_i %>]" class="form-control input-pm-number" value="1" min="1" max="<%= product.pquantity %>">
-                                <span class="input-group-btn">
-                                    <button type="button" class="btn btn-default btn-pm-number" data-type="plus" data-field="quant[<%= prod_i %>]">
-                                        <span class="glyphicon glyphicon-plus"></span>
-                                    </button>
-                                </span>
-                            </div>
-                            <button type="submit" class="btn btn-default">Add To Cart</button>
-                        <div>
-                    </form>
-                </td>
+                            <div class=pull-right>
+                                <div class="input-group">
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-default btn-pm-number" disabled="disabled" data-type="minus" data-field="quant[<%= prod_i %>]">
+                                            <span class="glyphicon glyphicon-minus"></span>
+                                        </button>
+                                    </span>
+                                    <input type="text" name="quantity_to_add" data-name="quant[<%= prod_i %>]" class="form-control input-pm-number" value="1" min="1" max="<%= product.pquantity %>">
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-default btn-pm-number" data-type="plus" data-field="quant[<%= prod_i %>]">
+                                            <span class="glyphicon glyphicon-plus"></span>
+                                        </button>
+                                    </span>
+                                </div>
+                                <button type="submit" class="btn btn-default">Add To Cart</button>
+                            <div>
+                        </form>
+                    </td>
+                <% } %>
             </tr>
             <% prod_i++ %>
         <% }); %>
