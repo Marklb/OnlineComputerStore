@@ -79,7 +79,7 @@ INSERT INTO OfferProduct (pid, offer_price) VALUES (6, 14.80);
 INSERT INTO OfferProduct (pid, offer_price) VALUES (7, 18.80);
 
 -- Cart
-INSERT INTO Cart (cid, sa_name, ccnumber, tstatus) VALUES (2, "Home", 5555678834678375, 1); -- 1
+INSERT INTO Cart (cid, sa_name, ccnumber, tstatus) VALUES (2, "Home", 5555678834678375, 0); -- 1
 
 -- AppearsIn
 INSERT INTO AppearsIn (cart_id, pid, quantity, price_sold) VALUES (1, 4, 3, 176.4);

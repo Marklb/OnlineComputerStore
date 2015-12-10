@@ -1,0 +1,49 @@
+<!-- views/partials/create_customer_form.ejs -->
+
+<div class="row">
+    <div class="col-sm-6 col-md-4 col-md-offset-4">
+        <div class="">
+            <span class="">New Customer</span>
+            <div class="well well-sm">
+                <form class="" action="/create_customer" method="POST">
+                    <!-- First Name -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">First name</div>
+                            <input type="text" class="form-control" name="fname" placeholder="FirstName" required autofocus>
+                        </div>
+                    </div>
+                    <!-- Last Name -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Last name</div>
+                            <input type="text" class="form-control" name="lname" placeholder="LastName" required>
+                        </div>
+                    </div>
+                    <!-- Email -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Email</div>
+                            <input type="text" class="form-control" name="email" placeholder="Email" required>
+                        </div>
+                    </div>
+                    <!-- Address -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Address</div>
+                            <input type="text" class="form-control" name="address" placeholder="Address" required>
+                        </div>
+                    </div>
+                    <!-- Phone -->
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">Phone</div>
+                            <input type="text" class="form-control" name="phone" placeholder="Phone" required>
+                        </div>
+                    </div>
+                    <button class="btn btn-default btn-block" type="submit">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

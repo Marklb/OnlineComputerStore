@@ -55,6 +55,11 @@ ADD CONSTRAINT fk_l_pid
 FOREIGN KEY(pid)
 REFERENCES Product(pid);
 
+ALTER TABLE Laptop
+ADD CONSTRAINT fk_lc_pid
+FOREIGN KEY(pid)
+REFERENCES Computer(pid);
+
 ALTER TABLE Printer
 ADD CONSTRAINT fk_p_pid
 FOREIGN KEY(pid)

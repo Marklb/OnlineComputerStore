@@ -1,12 +1,38 @@
 <!-- views/partials/cart_display.ejs -->
 
-<table class="table table-hover">
+<table class="table table-bordered table-hover">
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th></th>
+    </tr>
     <% cartData.forEach(function(item) { %>
         <tr>
             <td><%= item.pname %></td>
             <td><%= item.description %></td>
-            <td>$<%= item.price_sold %></td>
-            <td>$<%= item.quantity_in_cart %></td>
+            <td>$<%= (parseFloat(item.price_sold)*parseInt(item.quantity_in_cart)).toFixed(2) %></td>
+            <td><%= item.quantity_in_cart %></td>
+            <td>
+                <form class="form-inline" action="/removeFromCart" method="POST">
+                    <!--
+                        Setting these inputs to hidden so I can have them sent in the POST protocol.
+                        ** Not the safest way of doing this since the values can still be seen in the
+                           pages source.
+                    -->
+                    <input type="text" class="form-control hidden" name="cid" value="<%= cid %>">
+                    <input type="text" class="form-control hidden" name="cart_id" value="<%= item.cart_id %>">
+                    <input type="text" class="form-control hidden" name="pid" value="<%= item.pid %>">
+                    <input type="text" class="form-control hidden" name="quantity" value="<%= item.quantity_in_cart %>">
+
+                    <div class=pull-right>
+                        <div class="input-group">
+                            <button type="submit" class="btn btn-default">Remove</button>
+                        <div>
+                    </div>
+                </form>
+            </td>
         </tr>
     <% }); %>
 </table>

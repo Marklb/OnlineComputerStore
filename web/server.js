@@ -61,6 +61,9 @@ function isLoggedIn(req, res){
     return false;
   }else{
     // Customer is logged in
+
+    // Refresh the logged in cookies expiration
+    setLoggedInCookie(res, cookie, req.cookies.customerEmail);
     return true;
   }
 };
@@ -107,14 +110,27 @@ function GET_homeRoute(req, res){
   // Get all the products offered query
   function doQuery1(){
     var defered = Q.defer();
+    var order_direction = 'ASC';
+    // var order_direction = 'DESC';
+    var order_by = 'P.pname';
     var query_statement = 'SELECT O.pid AS pid, '+
                                  'O.offer_price AS offer_price, '+
                                  'P.ptype AS ptype, '+
                                  'P.pname AS pname, '+
                                  'P.description AS description, '+
-                                 'P.pquantity AS pquantity '+
-                          'FROM `OfferProduct` As O, `Product` AS P '+
-                          'WHERE O.pid = P.pid';
+                                 'P.pquantity AS pquantity, '+
+                                 'C.cpu_type AS cpu_type, '+
+                                 'L.btype AS btype, '+
+                                 'L.weight AS weight, '+
+                                 'PR.printer_type AS printer_type, '+
+                                 'PR.resolution AS resolution '+
+                          'FROM `OfferProduct` As O '+
+                               'INNER JOIN `Product` AS P ON O.pid = P.pid '+
+                               'LEFT JOIN `Computer` AS C ON P.pid = C.pid '+
+                               'LEFT JOIN `Laptop` AS L ON P.pid = L.pid AND '+
+                                                          'C.pid = L.pid '+
+                               'LEFT JOIN `Printer` AS PR On O.pid = PR.pid '+
+                               'ORDER BY '+order_by+' '+order_direction;
     conn.query(query_statement, defered.makeNodeResolver());
     return defered.promise;
   };
@@ -122,10 +138,9 @@ function GET_homeRoute(req, res){
   function doQuery2(){
     var defered = Q.defer();
     var query_statement = 'SELECT COUNT(*) AS `num_items` '+
-                          'FROM `Cart` '+
-                          'WHERE `cid` IN (SELECT `cid` '+
-                                          'FROM `Customer` '+
-                                          'WHERE `cid` = ?)';
+                          'FROM `Cart` AS C, `AppearsIn` AS A '+
+                          'WHERE C.cart_id = A.cart_id AND '+
+                                'C.cid = ? AND C.tstatus = 0';
     conn.query(query_statement, [customer_cid], defered.makeNodeResolver());
     return defered.promise;
   };
@@ -155,20 +170,204 @@ app.post('/addToCart', function(req, res){
   // After adding the product redirect back to the products page or their cart.
 
   // Read the variables sent using the POST protocol
-  var email = req.body.cid;
-  var email = req.body.pid;
-  var email = req.body.price;
+  var cid = req.body.cid;
+  var pid = req.body.pid;
+  var price = req.body.price;
+  var quantity_to_add = req.body.quantity_to_add;
+  console.log("cid: %s, pid: %s, price: %s, quantity_to_add: %s", cid, pid, price, quantity_to_add);
 
   // Check if an active cart exists
   var conn = createDBConnection();
-  var query_statement = 'SELECT `cart_id` FROM `Cart` WHERE ';
-  conn.query(query_statement, [email], function(err, rows, fields){
+  var query_st = 'SELECT `cart_id` '+
+                 'FROM `Cart` '+
+                 'WHERE `tstatus` = 0 AND `cid` = ?';
+  conn.query(query_st, [cid], function(err, rows, fields){
     if (err) throw err;
-    conn.end();
+    // conn.end();
 
     console.log(rows);
-    // TODO: Finish this functions implementation.
+    if(rows.length > 0){
+      // A cart that hasn't completed the transaction exists
+      console.log("A cart exists");
+      // Check if the product appears in the cart already
+      var query_st = 'SELECT * '+
+                     'FROM `AppearsIn` '+
+                     'WHERE `cart_id` = ? AND `pid` = ?';
+      conn.query(query_st, [rows[0].cart_id, pid], function(err2, rows2, fields2){
+        if (err2) throw err2;
 
+        if(rows2.length > 0){
+          var quantity_in_cart = rows2[0].quantity;
+          // Product already appears in the cart
+          console.log("Product already in cart");
+
+          // Get the total quantity of that product that exists
+          var query_st = 'SELECT `pid`, `pquantity` '+
+                         'FROM `Product` '+
+                         'WHERE `pid` = ?';
+          conn.query(query_st, [pid], function(err3, rows3, fields3){
+            if (err3) throw err3;
+
+            var quantity_of_product = rows3[0].pquantity;
+            // Update the quantity of the product in the cart and the total
+            // product quantity, if the quantity_of_product >= quantity_to_add
+            if(quantity_of_product >= quantity_to_add){
+              // Update total product quantity
+              function doQuery1(){
+                var defered = Q.defer();
+                var query_st = 'UPDATE `Product` '+
+                               'SET `pquantity`= ? '+
+                               'WHERE `pid` = ?';
+                var values = [(parseInt(quantity_of_product)-parseInt(quantity_to_add)), pid];
+                conn.query(query_st, values, defered.makeNodeResolver());
+                return defered.promise;
+              };
+
+              // Update cart product quantity
+              function doQuery2(){
+                var defered = Q.defer();
+                var query_st = 'UPDATE `AppearsIn` '+
+                               'SET `quantity` = ? '+
+                               'WHERE `cart_id` = ? AND `pid` = ?';
+                var values = [(parseInt(quantity_in_cart)+parseInt(quantity_to_add)), rows[0].cart_id, pid];
+                conn.query(query_st, values, defered.makeNodeResolver());
+                return defered.promise;
+              };
+
+              Q.all([doQuery1(), doQuery2()]).then(function(results){
+                conn.end();
+              });
+
+            }else{
+              // Not enough product available
+              // TODO: Show error message to customer
+              conn.end();
+            }
+
+
+          });
+
+        }else{
+          // Product doesn't appear in the cart yet
+          console.log("Product doesn't appear in cart");
+
+          // Insert item into cart
+          function doQuery1(){
+            var defered = Q.defer();
+            var query_st = 'INSERT INTO `AppearsIn` '+
+                           '(`cart_id`, `pid`, `quantity`, `price_sold`) '+
+                           'VALUES (?, ?, ?, ?)';
+            var values = [rows[0].cart_id, pid, quantity_to_add, price];
+            conn.query(query_st, values, defered.makeNodeResolver());
+            return defered.promise;
+          };
+
+          // Remove quantity from product
+          function doQuery2(){
+            var defered = Q.defer();
+            var query_st = 'UPDATE `Product` '+
+                           'SET `pquantity` = `pquantity` - ? '+
+                           'WHERE `pid` = ?';
+            var values = [quantity_to_add, pid];
+            conn.query(query_st, values, defered.makeNodeResolver());
+            return defered.promise;
+          };
+
+          Q.all([doQuery1(), doQuery2()]).then(function(results){
+            conn.end();
+          });
+
+
+        }
+
+      });
+
+    }else{
+      // A cart that hasn't completed the transaction doesn't exists
+      console.log("A cart doesn't exists");
+      // Create a cart
+      var query_st = 'INSERT INTO `Cart` '+
+                     '(`cid`) '+
+                     'VALUES (?)';
+      conn.query(query_st, [cid], function(err, rows, fields){
+        if (err) throw err;
+
+        console.log(rows);
+        // Insert product into cart
+        function doQuery1(){
+          var defered = Q.defer();
+          var query_st = 'INSERT INTO `AppearsIn` '+
+                         '(`cart_id`, `pid`, `quantity`, `price_sold`) '+
+                         'VALUES (?, ?, ?, ?)';
+          var values = [rows.insertId, pid, quantity_to_add, price];
+          conn.query(query_st, values, defered.makeNodeResolver());
+          return defered.promise;
+        };
+
+        // Remove quantity from product
+        function doQuery2(){
+          var defered = Q.defer();
+          var query_st = 'UPDATE `Product` '+
+                         'SET `pquantity` = `pquantity` - ? '+
+                         'WHERE `pid` = ?';
+          var values = [quantity_to_add, pid];
+          conn.query(query_st, values, defered.makeNodeResolver());
+          return defered.promise;
+        };
+
+        Q.all([doQuery1(), doQuery2()]).then(function(results){
+          conn.end();
+        });
+
+      });
+    }
+
+    res.redirect('/cart');
+
+  });
+});
+
+
+//==============================================================================
+// removeFromCart Route
+//==============================================================================
+app.post('/removeFromCart', function(req, res){
+  // Does not return a view.
+  // Removes a product from the customers cart.
+  // After adding the product redirect back to the products page or their cart.
+
+  // Read the variables sent using the POST protocol
+  var cart_id = req.body.cart_id;
+  var cid = req.body.cid;
+  var pid = req.body.pid;
+  var quantity = req.body.quantity;
+  console.log("cart_id: %s cid: %s, pid: %s, quantity: %s", cart_id, cid, pid, quantity);
+
+  var conn = createDBConnection();
+  // Delete from customers cart
+  function doQuery1(){
+    var defered = Q.defer();
+    var query_st = 'DELETE FROM `AppearsIn` '+
+                   'WHERE `cart_id` = ? AND `pid` = ?';
+    var values = [cart_id, pid];
+    conn.query(query_st, values, defered.makeNodeResolver());
+    return defered.promise;
+  };
+
+  // Add quantity back to the product
+  function doQuery2(){
+    var defered = Q.defer();
+    var query_st = 'UPDATE `Product` '+
+                   'SET `pquantity` = `pquantity` + ? '+
+                   'WHERE `pid` = ?';
+    var values = [quantity, pid];
+    conn.query(query_st, values, defered.makeNodeResolver());
+    return defered.promise;
+  };
+
+  Q.all([doQuery1(), doQuery2()]).then(function(results){
+    conn.end();
+    res.redirect('/cart');
   });
 });
 
@@ -255,9 +454,9 @@ app.get('/account', function(req, res){
   function doQuery1(){
     var defered = Q.defer();
     var query_statement = 'SELECT COUNT(*) AS `num_items` '+
-                          'FROM `Cart` WHERE `cid` IN (SELECT `cid` '+
-                                                      'FROM `Customer` '+
-                                                      'WHERE `cid` = ?)';
+                          'FROM `Cart` AS C, `AppearsIn` AS A '+
+                          'WHERE C.cart_id = A.cart_id AND '+
+                                'C.cid = ? AND C.tstatus = 0';
     conn.query(query_statement, [customer_cid], defered.makeNodeResolver());
     return defered.promise;
   };
@@ -341,6 +540,7 @@ app.get('/cart', function(req, res){
   function doQuery1(){
     var defered = Q.defer();
     var query_statement = 'SELECT C.cid AS cid, A.pid AS pid, '+
+                                 'C.cart_id AS cart_id, '+
                                  'P.ptype AS ptype, P.pname AS pname, '+
                                  'P.description AS description, '+
                                  'A.price_sold AS price_sold, '+
@@ -357,11 +557,10 @@ app.get('/cart', function(req, res){
   function doQuery2(){
     var defered = Q.defer();
     var query_statement = 'SELECT COUNT(*) AS `num_items` '+
-                          'FROM `Cart` '+
-                          'WHERE `cid` IN (SELECT `cid` '+
-                                          'FROM `Customer` '+
-                                          'WHERE `email` = ?)';
-    conn.query(query_statement, [customer_email], defered.makeNodeResolver());
+                          'FROM `Cart` AS C, `AppearsIn` AS A '+
+                          'WHERE C.cart_id = A.cart_id AND '+
+                                'C.cid = ? AND C.tstatus = 0';
+    conn.query(query_statement, [customer_cid], defered.makeNodeResolver());
     return defered.promise;
   };
 
@@ -379,6 +578,46 @@ app.get('/cart', function(req, res){
 });
 
 
+//==============================================================================
+// create customer page
+//==============================================================================
+app.get('/create_customer', function(req, res){
+  // Standard vars needed for each page.
+  var loggedIn = isLoggedIn(req, res);
+  var customer_cid = loggedIn ? getCidCookie(req) : "";
+  var customer_email = loggedIn ? getEmailCookie(req) : "";
+
+  // Render the new customer view which contains the new customer form.
+  res.render('pages/create_customer', {
+    isLoggedIn: loggedIn,
+    cid: customer_cid,
+    email: customer_email
+  });
+});
+
+app.post('/create_customer', function(req, res){
+  var fname = req.body.fname;
+  var lname = req.body.lname;
+  var email = req.body.email;
+  var address = req.body.address;
+  var phone = req.body.phone;
+
+  var conn = createDBConnection();
+  var query_statement = 'INSERT INTO `Customer` '+
+                        '(`fname`, `lname`, `email`, `address`, `phone`) '+
+                        'VALUES (?, ?, ?, ?, ?) ';
+  var values = [fname, lname, email, address, phone];
+  conn.query(query_statement, values, function(err, rows, fields){
+    conn.end();
+    if(err){
+      console.log(err);
+      res.redirect('/create_customer');
+    }else{
+      res.redirect('/login');
+    }
+  });
+
+});
 
 
 

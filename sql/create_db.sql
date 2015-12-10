@@ -13,7 +13,7 @@ CREATE TABLE Customer (
     email VARCHAR(50) NOT NULL UNIQUE,
     address VARCHAR(50) NOT NULL,
     phone VARCHAR(30) NOT NULL,
-    status TINYINT(1) NOT NULL
+    status TINYINT(1) NOT NULL DEFAULT 1
 );
 
 CREATE TABLE StoredCard (

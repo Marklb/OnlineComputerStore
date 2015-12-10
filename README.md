@@ -1,12 +1,12 @@
-## Prerequisites
-MySQL
-NodeJS
+# Prerequisites
+- MySQL
+- NodeJS
 
-## Installation/Setup
-#Create the database initial data:
+# Installation/Setup
+##Create the database initial data:
 Run the all.sql script on your MySQL database.
 
-#Install the needed node modules
+##Install the needed node modules
 Navigate to the 'web/' directory in a terminal/command prompt.
 Run the command:
 npm install
